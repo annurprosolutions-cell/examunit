@@ -79,7 +79,7 @@ canvas.sig{width:100%;height:130px;border:1.5px dashed #9aa6bd;border-radius:8px
   <div class="card">
     <h2>Sambungan Sistem</h2>
     <p class="muted">Tampal URL Web App dari Google Apps Script (yang berakhir dengan /exec). Buat sekali sahaja pada peranti ini.</p>
-    <div class="fld"><label>URL Web App</label><input id="apiUrl" placeholder="https://script.google.com/macros/s/AKfycbyytC3JCcZRcsockP3x6OzuXgh1d08M5_0IRUvmq8ii6_dDm4OuJ8t6rSYAx5_RWsrn/exec"></div>
+    <div class="fld"><label>URL Web App</label><input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
     <button class="btn" onclick="saveApi()">Simpan</button>
   </div>
 </div>
@@ -113,7 +113,7 @@ canvas.sig{width:100%;height:130px;border:1.5px dashed #9aa6bd;border-radius:8px
 
 <script>
 /* ================= KONFIGURASI ================= */
-var API_URL = 'https://script.google.com/macros/s/AKfycbyytC3JCcZRcsockP3x6OzuXgh1d08M5_0IRUvmq8ii6_dDm4OuJ8t6rSYAx5_RWsrn/exec'; // boleh biar begini; sistem akan minta URL pada skrin pertama
+var API_URL = 'https://script.google.com/macros/s/AKfycbyytC3JCcZRcsockP3x6OzuXgh1d08M5_0IRUvmq8ii6_dDm4OuJ8t6rSYAx5_RWsrn/exec';
 
 /* ================= UTIL ================= */
 var S = { token: null, user: null, tab: null, subjek: [], users: [], cache: {} };
