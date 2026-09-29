@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistem Unit Ujian</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--ink:#1c2433;--mut:#66728a;--line:#dfe4ee;--pri:#1f4e8c;--pri2:#173b6a;--ok:#1b7f4b;--okbg:#e4f5ec;--warn:#a8650a;--warnbg:#fdf1de;--bad:#b3261e;--badbg:#fbe7e5;--info:#1f4e8c;--infobg:#e6eefa}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+h1,h2,h3{margin:0}
+button,input,select,textarea{font:inherit}
+.hide{display:none!important}
+header.top{background:var(--pri);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+header.top b{font-size:16px}
+header.top .who{margin-left:auto;text-align:right;font-size:12px;opacity:.9}
+header.top button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:6px;padding:6px 10px;cursor:pointer}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);padding:0 8px;position:sticky;top:48px;z-index:4}
+nav.tabs button{border:0;background:none;padding:12px 12px;color:var(--mut);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent}
+nav.tabs button.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row>*{flex:1 1 140px}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:600}
+.btn:hover{background:var(--pri2)}
+.btn.sec{background:#fff;color:var(--pri);border:1px solid var(--pri)}
+.btn.red{background:var(--bad)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600}
+.b-BELUM{background:#eceff5;color:var(--mut)}.b-MASUK,.b-KERTAS{background:var(--infobg);color:var(--info)}
+.b-PULANG{background:var(--warnbg);color:var(--warn)}.b-SELESAI{background:var(--okbg);color:var(--ok)}
+.b-BAD{background:var(--badbg);color:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{font-size:26px;display:block}.stat span{font-size:12px;color:var(--mut)}
+.stat.bad b{color:var(--bad)}.stat.warn b{color:var(--warn)}.stat.ok b{color:var(--ok)}
+.sesi h3{font-size:16px}.sesi .meta{color:var(--mut);font-size:13px;margin:2px 0 8px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
+.step{border:1px solid var(--line);border-radius:8px;padding:6px;font-size:12px;color:var(--mut);text-align:center}
+.step.done{background:var(--okbg);border-color:#bfe3cf;color:var(--ok)}
+.step b{display:block;font-size:12px}
+.warnline{background:var(--badbg);color:var(--bad);border-radius:8px;padding:6px 10px;font-size:13px;margin:6px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:#f0f3f9;font-size:12px;position:sticky;top:0}
+.tw{overflow:auto;max-height:65vh;border:1px solid var(--line);border-radius:8px;background:#fff}
+.empty{text-align:center;color:var(--mut);padding:28px}
+.modalbg{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.modal{background:#fff;border-radius:14px 14px 0 0;width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:16px}
+@media(min-width:600px){.modalbg{align-items:center}.modal{border-radius:14px}}
+.modal h3{margin-bottom:10px}
+.fld{margin-bottom:10px}
+canvas.sig{width:100%;height:130px;border:1.5px dashed #9aa6bd;border-radius:8px;background:#fff;touch-action:none}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1c2433;color:#fff;padding:10px 16px;border-radius:8px;z-index:50;max-width:90%}
+.toast.err{background:var(--bad)}
+.login{max-width:380px;margin:9vh auto;padding:0 16px}
+.muted{color:var(--mut);font-size:13px}
+.right{margin-left:auto}
+.printhead{display:none}
+@media print{
+  header.top,nav.tabs,.noprint,.toast{display:none!important}
+  body{background:#fff}main{padding:0;max-width:none}
+  .card{border:0;padding:0}.tw{max-height:none;overflow:visible;border:0}
+  .printhead{display:block;margin-bottom:8px}
+  table{font-size:10px}th{position:static}
+  @page{size:A4 landscape;margin:10mm}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SETUP API ============ -->
+<div id="vSetup" class="login hide">
+  <div class="card">
+    <h2>Sambungan Sistem</h2>
+    <p class="muted">Tampal URL Web App dari Google Apps Script (yang berakhir dengan /exec). Buat sekali sahaja pada peranti ini.</p>
+    <div class="fld"><label>URL Web App</label><input id="apiUrl" placeholder="https://script.google.com/macros/s/AKfycbyytC3JCcZRcsockP3x6OzuXgh1d08M5_0IRUvmq8ii6_dDm4OuJ8t6rSYAx5_RWsrn/exec"></div>
+    <button class="btn" onclick="saveApi()">Simpan</button>
+  </div>
+</div>
+
+<!-- ============ LOGIN ============ -->
+<div id="vLogin" class="login hide">
+  <div class="card">
+    <h2>Sistem Unit Ujian</h2>
+    <p class="muted">Pengurusan bilik ujian: kertas soalan, skrip jawapan dan rekod pengambilan.</p>
+    <form onsubmit="return doLogin(event)">
+      <div class="fld"><label>ID Pengguna</label><input id="lUser" autocomplete="username" autocapitalize="off" required></div>
+      <div class="fld"><label>Kata Laluan</label><input id="lPass" type="password" autocomplete="current-password" required></div>
+      <button class="btn" style="width:100%" id="lBtn">Log Masuk</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="vApp" class="hide">
+  <header class="top">
+    <b>Unit Ujian</b>
+    <div class="who"><span id="whoName"></span><br><span id="whoRole"></span></div>
+    <button onclick="doLogout()">Keluar</button>
+  </header>
+  <nav class="tabs" id="tabs"></nav>
+  <main id="main"></main>
+</div>
+
+<div id="modalHost"></div>
+<div id="toastHost"></div>
+
+<script>
+/* ================= KONFIGURASI ================= */
+var API_URL = 'PASTE_URL_WEB_APP_DI_SINI'; // boleh biar begini; sistem akan minta URL pada skrin pertama
+
+/* ================= UTIL ================= */
+var S = { token: null, user: null, tab: null, subjek: [], users: [], cache: {} };
+function $(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return S.cache[k]||null}}
+function sstore(k,v){try{if(v===undefined)return sessionStorage.getItem(k);if(v===null)sessionStorage.removeItem(k);else sessionStorage.setItem(k,v)}catch(e){return null}}
+function pad(n){return (n<10?'0':'')+n}
+function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function todayStr(){return ymd(new Date())}
+function addDays(s,n){var d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d)}
+function dmy(s){if(!s)return '';var p=s.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s}
+function hm(ts){return ts?String(ts).slice(11,16):''}
+var ROLE={admin:'Admin Unit Ujian',pengawas:'Pengawas Peperiksaan',guru:'Guru Subjek',pengurusan:'Pengurusan (Pengetua/GPK)'};
+var STAT={BELUM:'Belum mula',MASUK:'Dalam bilik',KERTAS:'Kertas diambil',PULANG:'Skrip dipulang',SELESAI:'Selesai'};
+
+function toast(msg,err){
+  var d=document.createElement('div');d.className='toast'+(err?' err':'');d.textContent=msg;
+  $('toastHost').appendChild(d);setTimeout(function(){d.remove()},err?4500:2500);
+}
+function busy(btn,on){if(btn){btn.disabled=on}}
+
+async function api(action,data){
+  var r;
+  try{
+    r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:action,token:S.token,data:data||{}})});
+    r=await r.json();
+  }catch(e){throw new Error('Tiada sambungan ke pelayan. Semak internet / URL Web App.')}
+  if(!r.ok){
+    if(r.code==='AUTH'){forceLogout(r.error);}
+    var er=new Error(r.error||'Ralat');er.code=r.code;throw er;
+  }
+  return r.data;
+}
+
+/* ================= AUTH FLOW ================= */
+function start(){
+  var saved=store('uu_api');
+  if(API_URL.indexOf('PASTE')===0&&saved)API_URL=saved;
+  if(API_URL.indexOf('PASTE')===0){show('vSetup');return}
+  var t=sstore('uu_tok');
+  if(t){S.token=t;api('me').then(function(u){S.user=u;enter()}).catch(function(){forceLogout()})}
+  else show('vLogin');
+}
+function show(id){['vSetup','vLogin','vApp'].forEach(function(v){$(v).classList.toggle('hide',v!==id)})}
+function saveApi(){
+  var v=$('apiUrl').value.trim();
+  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(v)){toast('URL tidak sah. Mesti berakhir dengan /exec',true);return}
+  store('uu_api',v);API_URL=v;show('vLogin');
+}
+async function doLogin(ev){
+  ev.preventDefault();var b=$('lBtn');busy(b,true);
+  try{
+    var r=await api('login',{username:$('lUser').value,password:$('lPass').value});
+    S.token=r.token;S.user=r.user;sstore('uu_tok',r.token);$('lPass').value='';enter();
+  }catch(e){toast(e.message,true)}
+  busy(b,false);return false;
+}
+async function doLogout(){try{await api('logout')}catch(e){}forceLogout()}
+function forceLogout(msg){S.token=null;S.user=null;sstore('uu_tok',null);show('vLogin');if(msg)toast(msg,true)}
+
+function enter(){
+  show('vApp');
+  $('whoName').textContent=S.user.nama;$('whoRole').textContent=ROLE[S.user.peranan]||S.user.peranan;
+  if(S.user.mustChange){pwModal(true);return}
+  var p=S.user.peranan;
+  var tabs=[];
+  if(p==='admin')tabs=[['dash','Dashboard'],['sesi','Sesi Ujian'],['jadual','Jadual'],['laporan','Laporan'],['pengguna','Pengguna'],['subjek','Subjek'],['akaun','Akaun']];
+  else if(p==='pengawas')tabs=[['sesi','Sesi Hari Ini'],['akaun','Akaun']];
+  else if(p==='guru')tabs=[['sesi','Skrip Saya'],['akaun','Akaun']];
+  else tabs=[['dash','Dashboard'],['laporan','Laporan'],['akaun','Akaun']];
+  $('tabs').innerHTML=tabs.map(function(t){return '<button data-t="'+t[0]+'" onclick="go(\''+t[0]+'\')">'+t[1]+'</button>'}).join('');
+  api('listSubjek').then(function(s){S.subjek=s}).catch(function(){});
+  go(tabs[0][0]);
+}
+function go(t){
+  S.tab=t;
+  Array.prototype.forEach.call($('tabs').children,function(b){b.classList.toggle('on',b.dataset.t===t)});
+  var v={dash:vDash,sesi:vSesi,jadual:vJadual,laporan:vLaporan,pengguna:vPengguna,subjek:vSubjek,akaun:vAkaun}[t];
+  $('main').innerHTML='<div class="empty">Memuatkan...</div>';
+  v().catch(function(e){$('main').innerHTML='<div class="card warnline">'+esc(e.message)+'</div>'});
+}
+
+/* ================= MODAL ================= */
+function modal(html,onOpen){
+  var h=$('modalHost');
+  h.innerHTML='<div class="modalbg" onclick="if(event.target===this)closeModal()"><div class="modal">'+html+'</div></div>';
+  if(onOpen)onOpen();
+}
+function closeModal(){$('modalHost').innerHTML=''}
+
+function pwModal(force){
+  modal('<h3>'+(force?'Tukar kata laluan (wajib)':'Tukar kata laluan')+'</h3>'+
+    '<div class="fld"><label>Kata laluan lama</label><input type="password" id="pw0"></div>'+
+    '<div class="fld"><label>Kata laluan baru (min 8 aksara)</label><input type="password" id="pw1"></div>'+
+    '<div class="fld"><label>Ulang kata laluan baru</label><input type="password" id="pw2"></div>'+
+    '<div class="row"><button class="btn" id="pwGo">Simpan</button>'+(force?'':'<button class="btn sec" onclick="closeModal()">Batal</button>')+'</div>',
+    function(){
+      $('pwGo').onclick=async function(){
+        if($('pw1').value!==$('pw2').value){toast('Kata laluan baru tidak sama',true);return}
+        busy(this,true);
+        try{await api('changePassword',{lama:$('pw0').value,baru:$('pw1').value});toast('Kata laluan ditukar');closeModal();S.user.mustChange=false;enter()}
+        catch(e){toast(e.message,true)}busy(this,false);
+      };
+    });
+}
+
+/* ================= AKAUN ================= */
+async function vAkaun(){
+  $('main').innerHTML='<div class="card"><h3>'+esc(S.user.nama)+'</h3><p class="muted">ID: '+esc(S.user.username)+' &middot; '+esc(ROLE[S.user.peranan])+'</p>'+
+    '<button class="btn" onclick="pwModal(false)">Tukar kata laluan</button></div>';
+}
+
+/* ================= SESI (kad kerja) ================= */
+var sesiRange={dari:null,hingga:null,f:'semua'};
+async function vSesi(){
+  var p=S.user.peranan;
+  if(!sesiRange.dari){
+    if(p==='guru'){sesiRange.dari=addDays(todayStr(),-14);sesiRange.hingga=todayStr();sesiRange.f='pending'}
+    else{sesiRange.dari=todayStr();sesiRange.hingga=todayStr();sesiRange.f='semua'}
+  }
+  var rows=await api('listJadual',{dari:sesiRange.dari,hingga:sesiRange.hingga});
+  S.sesi=rows;
+  var list=rows.filter(function(j){
+    if(sesiRange.f==='pending')return j.status!=='SELESAI';
+    if(sesiRange.f==='skrip')return j.status==='PULANG';
+    return true;
+  });
+  var h='<div class="card noprint"><div class="row">'+
+    '<div><label>Dari</label><input type="date" id="sd" value="'+sesiRange.dari+'"></div>'+
+    '<div><label>Hingga</label><input type="date" id="sh" value="'+sesiRange.hingga+'"></div>'+
+    '<div><label>Tapis</label><select id="sf"><option value="semua">Semua</option><option value="pending">Belum selesai</option><option value="skrip">Skrip sedia diambil guru</option></select></div>'+
+    '<div style="flex:0 0 auto"><button class="btn" onclick="sesiApply()">Papar</button></div></div></div>';
+  if(!list.length)h+='<div class="card empty">Tiada sesi ujian untuk paparan ini.</div>';
+  h+=list.map(sesiCard).join('');
+  $('main').innerHTML=h;$('sf').value=sesiRange.f;
+}
+function sesiApply(){sesiRange.dari=$('sd').value;sesiRange.hingga=$('sh').value||$('sd').value;sesiRange.f=$('sf').value;go('sesi')}
+
+function flags(j){
+  var f=[],r=j.rekod;if(!r)return f;
+  if(r.hadir!=null&&r.bilSkripPulang!=null&&r.hadir!==r.bilSkripPulang)f.push('Skrip dipulang ('+r.bilSkripPulang+') tidak sama dengan calon hadir ('+r.hadir+')');
+  if(r.bilSkripAmbil!=null&&r.bilSkripPulang!=null&&r.bilSkripAmbil!==r.bilSkripPulang)f.push('Skrip diambil guru ('+r.bilSkripAmbil+') tidak sama dengan skrip dipulang ('+r.bilSkripPulang+')');
+  return f;
+}
+function sesiCard(j){
+  var r=j.rekod||{},p=S.user.peranan,act='';
+  if(j.status==='BELUM'&&(p==='pengawas'||p==='admin'))act='<button class="btn" onclick="actMasuk(\''+j.id+'\',this)">Log Masuk Bilik</button>';
+  if(j.status==='MASUK'&&(p==='pengawas'||p==='admin'))act='<button class="btn" onclick="actKertas(\''+j.id+'\')">Ambil Kertas Soalan</button>';
+  if(j.status==='KERTAS'&&(p==='pengawas'||p==='admin'))act='<button class="btn" onclick="actPulang(\''+j.id+'\')">Pulangkan Skrip Jawapan</button>';
+  if(j.status==='PULANG'&&(p==='guru'||p==='admin'))act='<button class="btn" onclick="actGuru(\''+j.id+'\')">Ambil Skrip</button>';
+  if(j.status==='PULANG'&&p==='pengawas')act='<span class="muted">Menunggu guru mengambil skrip</span>';
+  var late=j.tarikh<todayStr()&&j.status!=='SELESAI';
+  var fl=flags(j).map(function(x){return '<div class="warnline">'+esc(x)+'</div>'}).join('');
+  var st=function(ok,lbl,t){return '<div class="step'+(ok?' done':'')+'"><b>'+lbl+'</b>'+(ok?esc(t):'-')+'</div>'};
+  return '<div class="card sesi"><div class="row" style="align-items:flex-start"><div style="flex:1 1 200px"><h3>'+esc(j.subjek)+' &middot; '+esc(j.kelas)+'</h3>'+
+    '<div class="meta">'+dmy(j.tarikh)+' &middot; '+esc(j.sesi)+' ('+esc(j.masaMula)+'-'+esc(j.masaTamat)+')'+(j.bilik?' &middot; Bilik '+esc(j.bilik):'')+' &middot; '+j.bilCalon+' calon'+(j.guruNama?' &middot; Guru: '+esc(j.guruNama):'')+'</div></div>'+
+    '<div style="flex:0 0 auto"><span class="badge b-'+j.status+'">'+STAT[j.status]+'</span>'+(late?' <span class="badge b-BAD">Tertunggak</span>':'')+'</div></div>'+
+    '<div class="steps">'+st(r.masaMasuk,'Masuk bilik',hm(r.masaMasuk))+st(r.masaAmbilKertas,'Kertas ('+(r.bilKertas!=null?r.bilKertas:'')+')',hm(r.masaAmbilKertas))+
+    st(r.masaPulang,'Skrip pulang ('+(r.bilSkripPulang!=null?r.bilSkripPulang:'')+')',hm(r.masaPulang))+st(r.masaAmbilGuru,'Guru ambil ('+(r.bilSkripAmbil!=null?r.bilSkripAmbil:'')+')',hm(r.masaAmbilGuru))+'</div>'+
+    (r.pengawas?'<div class="muted">Pengawas: '+esc(r.pengawas)+(r.guruAmbil?' &middot; Diambil oleh: '+esc(r.guruAmbil):'')+'</div>':'')+
+    (r.catatan?'<div class="muted">Catatan pengawas: '+esc(r.catatan)+'</div>':'')+(r.catatanGuru?'<div class="muted">Catatan guru: '+esc(r.catatanGuru)+'</div>':'')+
+    fl+(act?'<div style="margin-top:10px">'+act+'</div>':'')+'</div>';
+}
+function jd(id){return S.sesi.filter(function(x){return x.id===id})[0]}
+
+async function actMasuk(id,btn){
+  if(!confirm('Log masuk bilik pengurusan ujian sekarang?'))return;
+  busy(btn,true);
+  try{await api('rekodMasuk',{jadualId:id});toast('Log masuk direkod');go('sesi')}catch(e){toast(e.message,true);busy(btn,false)}
+}
+function actKertas(id){
+  var j=jd(id);
+  modal('<h3>Ambil kertas soalan</h3><p class="muted">'+esc(j.subjek)+' &middot; '+esc(j.kelas)+'</p>'+
+    '<div class="fld"><label>Bilangan set kertas soalan diambil</label><input type="number" min="0" inputmode="numeric" id="fBil" value="'+j.bilCalon+'"></div>'+
+    '<div class="row"><button class="btn" id="fGo">Rekod (masa automatik)</button><button class="btn sec" onclick="closeModal()">Batal</button></div>',
+    function(){$('fGo').onclick=function(){submit('rekodKertas',{jadualId:id,bil:$('fBil').value},this)}});
+}
+function actPulang(id){
+  var j=jd(id);
+  modal('<h3>Pulangkan skrip jawapan</h3><p class="muted">'+esc(j.subjek)+' &middot; '+esc(j.kelas)+' &middot; '+j.bilCalon+' calon berdaftar</p>'+
+    '<div class="fld"><label>Bilangan calon hadir</label><input type="number" min="0" inputmode="numeric" id="fHadir" value="'+j.bilCalon+'"></div>'+
+    '<div class="fld"><label>Bilangan skrip jawapan dipulangkan</label><input type="number" min="0" inputmode="numeric" id="fBil" value="'+j.bilCalon+'"></div>'+
+    '<div class="fld"><label>Catatan (wajib jika bilangan tidak sama)</label><textarea id="fCat" maxlength="300"></textarea></div>'+
+    '<div class="row"><button class="btn" id="fGo">Rekod (masa automatik)</button><button class="btn sec" onclick="closeModal()">Batal</button></div>',
+    function(){$('fGo').onclick=function(){submit('rekodPulang',{jadualId:id,hadir:$('fHadir').value,bil:$('fBil').value,catatan:$('fCat').value},this)}});
+}
+var sigState={drawn:false};
+function actGuru(id){
+  var j=jd(id),r=j.rekod;
+  modal('<h3>Ambil skrip jawapan</h3><p class="muted">'+esc(j.subjek)+' &middot; '+esc(j.kelas)+'<br>Skrip dipulangkan pengawas: <b>'+r.bilSkripPulang+'</b></p>'+
+    '<div class="fld"><label>Bilangan skrip diambil (kira semula)</label><input type="number" min="0" inputmode="numeric" id="fBil" value="'+r.bilSkripPulang+'"></div>'+
+    '<div class="fld"><label>Catatan (wajib jika bilangan tidak sama)</label><textarea id="fCat" maxlength="300"></textarea></div>'+
+    '<div class="fld"><label>Tandatangan '+(S.user.peranan==='guru'?'(wajib)':'(pilihan untuk admin)')+'</label><canvas class="sig" id="sig" width="600" height="260"></canvas>'+
+    '<button class="btn sec sm" type="button" onclick="sigClear()">Padam tandatangan</button></div>'+
+    '<div class="row"><button class="btn" id="fGo">Sahkan pengambilan</button><button class="btn sec" onclick="closeModal()">Batal</button></div>',
+    function(){
+      sigInit();
+      $('fGo').onclick=function(){
+        var sig='';if(sigState.drawn)sig=$('sig').toDataURL('image/jpeg',0.55);
+        submit('rekodGuru',{jadualId:id,bil:$('fBil').value,catatan:$('fCat').value,tandatangan:sig},this);
+      };
+    });
+}
+async function submit(action,data,btn){
+  busy(btn,true);
+  try{await api(action,data);closeModal();toast('Direkod');go('sesi')}
+  catch(e){toast(e.message,true);busy(btn,false)}
+}
+function sigInit(){
+  var c=$('sig'),ctx=c.getContext('2d'),down=false;sigState.drawn=false;
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.lineWidth=4;ctx.lineCap='round';ctx.strokeStyle='#111';
+  function pos(e){var b=c.getBoundingClientRect();return [(e.clientX-b.left)*c.width/b.width,(e.clientY-b.top)*c.height/b.height]}
+  c.addEventListener('pointerdown',function(e){down=true;var p=pos(e);ctx.beginPath();ctx.moveTo(p[0],p[1]);c.setPointerCapture(e.pointerId)});
+  c.addEventListener('pointermove',function(e){if(!down)return;var p=pos(e);ctx.lineTo(p[0],p[1]);ctx.stroke();sigState.drawn=true});
+  ['pointerup','pointercancel'].forEach(function(n){c.addEventListener(n,function(){down=false})});
+}
+function sigClear(){var c=$('sig'),ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);sigState.drawn=false}
+
+/* ================= DASHBOARD ================= */
+async function vDash(){
+  var t=todayStr();
+  var rows=await api('listJadual',{dari:addDays(t,-30),hingga:addDays(t,7)});
+  S.sesi=rows;
+  var hari=rows.filter(function(j){return j.tarikh===t});
+  var c=function(a,s){return a.filter(function(j){return j.status===s}).length};
+  var tunggak=rows.filter(function(j){return j.tarikh<t&&j.status!=='SELESAI'});
+  var tunggakSkrip=rows.filter(function(j){return j.status==='PULANG'});
+  var flagged=rows.filter(function(j){return flags(j).length});
+  var h='<h2 style="margin-bottom:10px">Hari ini, '+dmy(t)+'</h2><div class="grid">'+
+    '<div class="stat"><b>'+hari.length+'</b><span>Sesi hari ini</span></div>'+
+    '<div class="stat"><b>'+c(hari,'BELUM')+'</b><span>Belum mula</span></div>'+
+    '<div class="stat"><b>'+(c(hari,'MASUK')+c(hari,'KERTAS'))+'</b><span>Sedang berlangsung</span></div>'+
+    '<div class="stat warn"><b>'+c(hari,'PULANG')+'</b><span>Skrip menunggu guru</span></div>'+
+    '<div class="stat ok"><b>'+c(hari,'SELESAI')+'</b><span>Selesai</span></div></div>'+
+    '<div class="grid"><div class="stat bad"><b>'+tunggak.length+'</b><span>Sesi tertunggak (30 hari lepas)</span></div>'+
+    '<div class="stat warn"><b>'+tunggakSkrip.length+'</b><span>Skrip belum diambil guru</span></div>'+
+    '<div class="stat bad"><b>'+flagged.length+'</b><span>Sesi ada percanggahan bilangan</span></div></div>';
+  h+='<div class="card"><h3 style="margin-bottom:8px">Skrip belum diambil guru</h3>'+(tunggakSkrip.length?listTbl(tunggakSkrip):'<div class="empty">Tiada. Semua skrip sudah diambil.</div>')+'</div>';
+  h+='<div class="card"><h3 style="margin-bottom:8px">Sesi tertunggak / tidak lengkap</h3>'+(tunggak.length?listTbl(tunggak):'<div class="empty">Tiada sesi tertunggak.</div>')+'</div>';
+  $('main').innerHTML=h;
+}
+function listTbl(a){
+  return '<div class="tw"><table><tr><th>Tarikh</th><th>Subjek</th><th>Kelas</th><th>Guru</th><th>Status</th><th>Skrip</th></tr>'+
+    a.map(function(j){var r=j.rekod||{};return '<tr><td>'+dmy(j.tarikh)+'</td><td>'+esc(j.subjek)+'</td><td>'+esc(j.kelas)+'</td><td>'+esc(j.guruNama||'-')+'</td><td><span class="badge b-'+j.status+'">'+STAT[j.status]+'</span></td><td>'+(r.bilSkripPulang!=null?r.bilSkripPulang:'-')+'</td></tr>'}).join('')+'</table></div>';
+}
+
+/* ================= LAPORAN ================= */
+var lapR={dari:null,hingga:null,f:'semua',subjek:''};
+async function vLaporan(){
+  if(!lapR.dari){lapR.dari=addDays(todayStr(),-30);lapR.hingga=todayStr()}
+  var rows=await api('listJadual',{dari:lapR.dari,hingga:lapR.hingga});
+  S.lap=rows;
+  var subs=[];rows.forEach(function(j){if(subs.indexOf(j.subjek)<0)subs.push(j.subjek)});subs.sort();
+  var list=rows.filter(function(j){
+    if(lapR.subjek&&j.subjek!==lapR.subjek)return false;
+    if(lapR.f==='pending')return j.status!=='SELESAI';
+    if(lapR.f==='selesai')return j.status==='SELESAI';
+    if(lapR.f==='flag')return flags(j).length>0;
+    return true;
+  });
+  S.lapList=list;
+  var tot={s:list.length,ok:list.filter(function(j){return j.status==='SELESAI'}).length,f:list.filter(function(j){return flags(j).length}).length};
+  var h='<div class="card noprint"><div class="row">'+
+    '<div><label>Dari</label><input type="date" id="ld" value="'+lapR.dari+'"></div>'+
+    '<div><label>Hingga</label><input type="date" id="lh" value="'+lapR.hingga+'"></div>'+
+    '<div><label>Subjek</label><select id="ls"><option value="">Semua</option>'+subs.map(function(s){return '<option'+(s===lapR.subjek?' selected':'')+'>'+esc(s)+'</option>'}).join('')+'</select></div>'+
+    '<div><label>Status</label><select id="lf"><option value="semua">Semua</option><option value="pending">Belum selesai</option><option value="selesai">Selesai</option><option value="flag">Ada percanggahan</option></select></div>'+
+    '<div style="flex:0 0 auto"><button class="btn" onclick="lapApply()">Papar</button></div></div>'+
+    '<div class="row" style="margin-top:10px"><button class="btn sec sm" style="flex:0 0 auto" onclick="lapCsv()">Muat turun Excel (CSV)</button><button class="btn sec sm" style="flex:0 0 auto" onclick="window.print()">Cetak / Simpan PDF</button></div></div>';
+  h+='<div class="printhead"><h2>Laporan Unit Ujian</h2><div>'+dmy(lapR.dari)+' hingga '+dmy(lapR.hingga)+(lapR.subjek?' &middot; '+esc(lapR.subjek):'')+'</div></div>';
+  h+='<div class="card"><div class="muted" style="margin-bottom:8px">'+tot.s+' sesi &middot; '+tot.ok+' selesai &middot; '+tot.f+' ada percanggahan bilangan</div>';
+  if(!list.length)h+='<div class="empty">Tiada data.</div>';
+  else h+='<div class="tw"><table><tr><th>Tarikh</th><th>Sesi</th><th>Subjek</th><th>Kelas</th><th>Pengawas</th><th>Masuk</th><th>Kertas</th><th>Pulang</th><th>Calon/Hadir</th><th>Skrip</th><th>Guru</th><th>Diambil</th><th>Status</th><th class="noprint"></th></tr>'+
+    list.map(function(j){var r=j.rekod||{};var fl=flags(j).length;
+      return '<tr><td>'+dmy(j.tarikh)+'</td><td>'+esc(j.sesi)+'</td><td>'+esc(j.subjek)+'</td><td>'+esc(j.kelas)+'</td><td>'+esc(r.pengawas||'')+'</td><td>'+hm(r.masaMasuk)+'</td><td>'+hm(r.masaAmbilKertas)+(r.bilKertas!=null?' ('+r.bilKertas+')':'')+'</td><td>'+hm(r.masaPulang)+'</td><td>'+j.bilCalon+'/'+(r.hadir!=null?r.hadir:'-')+'</td><td>'+(r.bilSkripPulang!=null?r.bilSkripPulang:'-')+'</td><td>'+esc(j.guruNama||'')+'</td><td>'+(r.masaAmbilGuru?hm(r.masaAmbilGuru)+' ('+r.bilSkripAmbil+')':'')+'</td>'+
+      '<td><span class="badge b-'+j.status+'">'+STAT[j.status]+'</span>'+(fl?' <span class="badge b-BAD">!</span>':'')+'</td><td class="noprint"><button class="btn sec sm" onclick="lapDetail(\''+j.id+'\')">Butiran</button></td></tr>'}).join('')+'</table></div>';
+  h+='</div>';
+  $('main').innerHTML=h;$('lf').value=lapR.f;
+}
+function lapApply(){lapR.dari=$('ld').value;lapR.hingga=$('lh').value||$('ld').value;lapR.subjek=$('ls').value;lapR.f=$('lf').value;go('laporan')}
+function lapCsv(){
+  var head=['Tarikh','Sesi','Masa','Subjek','Kelas','Bilik','Calon Berdaftar','Pengawas','Masuk Bilik','Ambil Kertas','Bil Kertas','Pulang Skrip','Calon Hadir','Skrip Dipulang','Catatan Pengawas','Guru','Masa Guru Ambil','Skrip Diambil','Catatan Guru','Status','Percanggahan'];
+  var q=function(v){v=String(v==null?'':v);if(/^[=+\-@]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+  var lines=[head.map(q).join(',')];
+  S.lapList.forEach(function(j){var r=j.rekod||{};
+    lines.push([dmy(j.tarikh),j.sesi,j.masaMula+'-'+j.masaTamat,j.subjek,j.kelas,j.bilik,j.bilCalon,r.pengawas,r.masaMasuk,r.masaAmbilKertas,r.bilKertas,r.masaPulang,r.hadir,r.bilSkripPulang,r.catatan,j.guruNama,r.masaAmbilGuru,r.bilSkripAmbil,r.catatanGuru,STAT[j.status],flags(j).join(' | ')].map(q).join(','))});
+  var blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='laporan-unit-ujian-'+lapR.dari+'_'+lapR.hingga+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
+async function lapDetail(id){
+  var j=S.lap.filter(function(x){return x.id===id})[0],r=j.rekod||{};
+  var sig='';
+  var body='<h3>'+esc(j.subjek)+' &middot; '+esc(j.kelas)+'</h3><p class="muted">'+dmy(j.tarikh)+' &middot; '+esc(j.sesi)+' &middot; '+esc(j.masaMula)+'-'+esc(j.masaTamat)+'</p>'+
+    '<table><tr><td>Pengawas</td><td>'+esc(r.pengawas||'-')+'</td></tr><tr><td>Masuk bilik</td><td>'+esc(r.masaMasuk||'-')+'</td></tr>'+
+    '<tr><td>Ambil kertas soalan</td><td>'+esc(r.masaAmbilKertas||'-')+(r.bilKertas!=null?' ('+r.bilKertas+' set)':'')+'</td></tr>'+
+    '<tr><td>Pulang skrip</td><td>'+esc(r.masaPulang||'-')+'</td></tr><tr><td>Calon hadir / skrip dipulang</td><td>'+(r.hadir!=null?r.hadir:'-')+' / '+(r.bilSkripPulang!=null?r.bilSkripPulang:'-')+'</td></tr>'+
+    '<tr><td>Catatan pengawas</td><td>'+esc(r.catatan||'-')+'</td></tr>'+
+    '<tr><td>Guru mengambil</td><td>'+esc(r.guruAmbil||'-')+'</td></tr><tr><td>Masa ambil / bilangan</td><td>'+esc(r.masaAmbilGuru||'-')+(r.bilSkripAmbil!=null?' / '+r.bilSkripAmbil:'')+'</td></tr>'+
+    '<tr><td>Catatan guru</td><td>'+esc(r.catatanGuru||'-')+'</td></tr></table>'+
+    flags(j).map(function(x){return '<div class="warnline">'+esc(x)+'</div>'}).join('')+
+    '<div id="sigBox" style="margin-top:8px"></div><div class="row" style="margin-top:12px">'+
+    (S.user.peranan==='admin'&&j.rekod?'<button class="btn red sm" onclick="resetRek(\''+j.id+'\')">Reset rekod</button>':'')+
+    '<button class="btn sec" onclick="closeModal()">Tutup</button></div>';
+  modal(body,async function(){
+    if(r.adaTandatangan){
+      try{var s=await api('getTandatangan',{jadualId:id});if(s&&s.indexOf('data:image/')===0)$('sigBox').innerHTML='<label>Tandatangan guru</label><img alt="tandatangan" style="max-width:100%;border:1px solid var(--line);border-radius:8px" src="'+s.replace(/"/g,'')+'">'}catch(e){}
+    }
+  });
+}
+async function resetRek(id){
+  if(!confirm('Reset rekod sesi ini? Semua masa dan bilangan akan dipadam dan sesi kembali "Belum mula".'))return;
+  try{await api('resetRekod',{jadualId:id});closeModal();toast('Rekod direset');go('laporan')}catch(e){toast(e.message,true)}
+}
+
+/* ================= ADMIN: JADUAL ================= */
+var jdR={dari:null,hingga:null};
+async function vJadual(){
+  if(!jdR.dari){jdR.dari=todayStr();jdR.hingga=addDays(todayStr(),30)}
+  var rows=await api('listJadual',{dari:jdR.dari,hingga:jdR.hingga});
+  S.jad=rows;
+  if(!S.users.length)S.users=await api('listUsers');
+  var h='<div class="card"><div class="row"><div><label>Dari</label><input type="date" id="jd1" value="'+jdR.dari+'"></div><div><label>Hingga</label><input type="date" id="jd2" value="'+jdR.hingga+'"></div>'+
+    '<div style="flex:0 0 auto"><button class="btn" onclick="jdApply()">Papar</button></div>'+
+    '<div style="flex:0 0 auto"><button class="btn sec" onclick="jadForm()">+ Tambah sesi</button></div>'+
+    '<div style="flex:0 0 auto"><button class="btn sec" onclick="jadBulk()">Import dari Excel</button></div></div></div>';
+  h+='<div class="card">'+(rows.length?'<div class="tw"><table><tr><th>Tarikh</th><th>Sesi</th><th>Masa</th><th>Subjek</th><th>Kelas</th><th>Bilik</th><th>Calon</th><th>Guru</th><th></th></tr>'+
+    rows.map(function(j){return '<tr><td>'+dmy(j.tarikh)+'</td><td>'+esc(j.sesi)+'</td><td>'+esc(j.masaMula)+'-'+esc(j.masaTamat)+'</td><td>'+esc(j.subjek)+'</td><td>'+esc(j.kelas)+'</td><td>'+esc(j.bilik)+'</td><td>'+j.bilCalon+'</td><td>'+esc(j.guruNama||'-')+'</td><td style="white-space:nowrap"><button class="btn sec sm" onclick="jadForm(\''+j.id+'\')">Edit</button> <button class="btn red sm" onclick="jadDel(\''+j.id+'\')">Padam</button></td></tr>'}).join('')+'</table></div>':'<div class="empty">Tiada sesi dalam tempoh ini. Tambah sesi atau import dari Excel.</div>')+'</div>';
+  $('main').innerHTML=h;
+}
+function jdApply(){jdR.dari=$('jd1').value;jdR.hingga=$('jd2').value||$('jd1').value;go('jadual')}
+function guruOpts(sel){return '<option value="">- tiada -</option>'+S.users.filter(function(u){return u.peranan==='guru'&&u.aktif}).map(function(u){return '<option value="'+esc(u.username)+'"'+(u.username===sel?' selected':'')+'>'+esc(u.nama)+' ('+esc(u.username)+')</option>'}).join('')}
+function jadForm(id){
+  var j=id?S.jad.filter(function(x){return x.id===id})[0]:{tarikh:todayStr(),sesi:'Pagi',masaMula:'08:00',masaTamat:'09:30',subjek:'',kelas:'',bilik:'',bilCalon:'',guru:''};
+  modal('<h3>'+(id?'Edit':'Tambah')+' sesi ujian</h3>'+
+    '<div class="row"><div class="fld"><label>Tarikh</label><input type="date" id="jTarikh" value="'+j.tarikh+'"></div><div class="fld"><label>Sesi</label><select id="jSesi"><option>Pagi</option><option>Petang</option></select></div></div>'+
+    '<div class="row"><div class="fld"><label>Masa mula</label><input type="time" id="jM1" value="'+j.masaMula+'"></div><div class="fld"><label>Masa tamat</label><input type="time" id="jM2" value="'+j.masaTamat+'"></div></div>'+
+    '<div class="fld"><label>Subjek</label><input id="jSub" list="dlSub" value="'+esc(j.subjek)+'"><datalist id="dlSub">'+S.subjek.map(function(s){return '<option value="'+esc(s.nama)+'">'}).join('')+'</datalist></div>'+
+    '<div class="row"><div class="fld"><label>Kelas / Tingkatan</label><input id="jKelas" value="'+esc(j.kelas)+'" placeholder="cth: 4 Amanah"></div><div class="fld"><label>Bilik</label><input id="jBilik" value="'+esc(j.bilik)+'"></div><div class="fld"><label>Bil. calon</label><input type="number" min="0" id="jBil" value="'+esc(j.bilCalon)+'"></div></div>'+
+    '<div class="fld"><label>Guru subjek (yang akan ambil skrip)</label><select id="jGuru">'+guruOpts(j.guru)+'</select></div>'+
+    '<div class="row"><button class="btn" id="jGo">Simpan</button><button class="btn sec" onclick="closeModal()">Batal</button></div>',
+    function(){
+      $('jSesi').value=j.sesi;
+      $('jGo').onclick=async function(){
+        busy(this,true);
+        try{await api('saveJadual',{id:id||'',tarikh:$('jTarikh').value,sesi:$('jSesi').value,masaMula:$('jM1').value,masaTamat:$('jM2').value,subjek:$('jSub').value,kelas:$('jKelas').value,bilik:$('jBilik').value,bilCalon:$('jBil').value,guru:$('jGuru').value});closeModal();toast('Disimpan');go('jadual')}
+        catch(e){toast(e.message,true);busy(this,false)}
+      };
+    });
+}
+async function jadDel(id){
+  if(!confirm('Padam sesi ini?'))return;
+  try{await api('deleteJadual',{id:id});toast('Dipadam');go('jadual')}
+  catch(e){
+    if(e.code==='HASREKOD'&&confirm(e.message)){try{await api('deleteJadual',{id:id,force:true});toast('Dipadam');go('jadual')}catch(x){toast(x.message,true)}}
+    else if(e.code!=='HASREKOD')toast(e.message,true);
+  }
+}
+function jadBulk(){
+  modal('<h3>Import jadual dari Excel</h3><p class="muted">Salin baris dari Excel (tanpa tajuk lajur) dan tampal di bawah. Susunan lajur:<br><b>Tarikh (DD/MM/YYYY) | Sesi | Masa Mula | Masa Tamat | Subjek | Kelas | Bil. Calon | ID Guru | Bilik</b><br>ID Guru dan Bilik boleh dikosongkan. Guru mesti dicipta dahulu di tab Pengguna.</p>'+
+    '<div class="fld"><textarea id="bulkTxt" style="min-height:160px" placeholder="06/10/2026&#9;Pagi&#9;08:00&#9;09:30&#9;Matematik&#9;4 Amanah&#9;32&#9;cikgu.ali&#9;Dewan"></textarea></div>'+
+    '<div class="row"><button class="btn" id="bGo">Import</button><button class="btn sec" onclick="closeModal()">Batal</button></div>',
+    function(){
+      $('bGo').onclick=async function(){
+        var lines=$('bulkTxt').value.split(/\r?\n/).filter(function(l){return l.trim()});
+        var rows=[];
+        for(var i=0;i<lines.length;i++){
+          var c=lines[i].split('\t').map(function(x){return x.trim()});
+          var t=c[0]||'',m=t.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+          if(m)t=m[3]+'-'+pad(+m[2])+'-'+pad(+m[1]);
+          var fix=function(x){var mm=(x||'').match(/^(\d{1,2}):(\d{2})/);return mm?pad(+mm[1])+':'+mm[2]:x};
+          rows.push({tarikh:t,sesi:c[1],masaMula:fix(c[2]),masaTamat:fix(c[3]),subjek:c[4],kelas:c[5],bilCalon:c[6],guru:c[7]||'',bilik:c[8]||''});
+        }
+        if(!rows.length){toast('Tiada data ditampal',true);return}
+        busy(this,true);
+        try{var n=await api('bulkJadual',{rows:rows});closeModal();toast(n+' sesi diimport');go('jadual')}
+        catch(e){toast(e.message,true);busy(this,false)}
+      };
+    });
+}
+
+/* ================= ADMIN: PENGGUNA ================= */
+async function vPengguna(){
+  S.users=await api('listUsers');
+  var h='<div class="card"><button class="btn" onclick="userForm()">+ Tambah pengguna</button> <span class="muted">Cipta akaun untuk pengawas, guru subjek dan pengurusan.</span></div>'+
+    '<div class="card"><div class="tw"><table><tr><th>ID</th><th>Nama</th><th>Peranan</th><th>Aktif</th><th></th></tr>'+
+    S.users.map(function(u){return '<tr><td>'+esc(u.username)+'</td><td>'+esc(u.nama)+'</td><td>'+esc(ROLE[u.peranan]||u.peranan)+'</td><td>'+(u.aktif?'Ya':'<span class="badge b-BAD">Tidak</span>')+'</td><td style="white-space:nowrap"><button class="btn sec sm" onclick="userForm(\''+esc(u.username)+'\')">Edit</button> <button class="btn sec sm" onclick="userReset(\''+esc(u.username)+'\')">Reset kata laluan</button></td></tr>'}).join('')+'</table></div></div>';
+  $('main').innerHTML=h;
+}
+function userForm(uname){
+  var u=uname?S.users.filter(function(x){return x.username===uname})[0]:{username:'',nama:'',peranan:'pengawas',aktif:true};
+  modal('<h3>'+(uname?'Edit':'Tambah')+' pengguna</h3>'+
+    '<div class="fld"><label>ID pengguna (huruf kecil, tanpa ruang)</label><input id="uId" value="'+esc(u.username)+'" '+(uname?'disabled':'')+' autocapitalize="off"></div>'+
+    '<div class="fld"><label>Nama penuh</label><input id="uNama" value="'+esc(u.nama)+'"></div>'+
+    '<div class="fld"><label>Peranan</label><select id="uRole">'+Object.keys(ROLE).map(function(r){return '<option value="'+r+'"'+(r===u.peranan?' selected':'')+'>'+ROLE[r]+'</option>'}).join('')+'</select></div>'+
+    (uname?'':'<div class="fld"><label>Kata laluan sementara (min 8 aksara, pengguna akan diminta tukar)</label><input id="uPw"></div>')+
+    '<div class="fld"><label><input type="checkbox" id="uAktif" style="width:auto" '+(u.aktif?'checked':'')+'> Akaun aktif</label></div>'+
+    '<div class="row"><button class="btn" id="uGo">Simpan</button><button class="btn sec" onclick="closeModal()">Batal</button></div>',
+    function(){$('uGo').onclick=async function(){
+      busy(this,true);
+      try{await api('saveUser',{username:$('uId').value,nama:$('uNama').value,peranan:$('uRole').value,password:$('uPw')?$('uPw').value:'',aktif:$('uAktif').checked});closeModal();toast('Disimpan');go('pengguna')}
+      catch(e){toast(e.message,true);busy(this,false)}
+    }});
+}
+function userReset(uname){
+  modal('<h3>Reset kata laluan: '+esc(uname)+'</h3><div class="fld"><label>Kata laluan sementara baru (min 8 aksara)</label><input id="rPw"></div>'+
+    '<div class="row"><button class="btn" id="rGo">Reset</button><button class="btn sec" onclick="closeModal()">Batal</button></div>',
+    function(){$('rGo').onclick=async function(){busy(this,true);try{await api('resetPassword',{username:uname,password:$('rPw').value});closeModal();toast('Kata laluan direset')}catch(e){toast(e.message,true);busy(this,false)}}});
+}
+
+/* ================= ADMIN: SUBJEK ================= */
+async function vSubjek(){
+  S.subjek=await api('listSubjek');
+  var h='<div class="card"><div class="row"><div><label>Kod</label><input id="sKod" maxlength="15"></div><div><label>Nama subjek</label><input id="sNama" maxlength="60"></div><div style="flex:0 0 auto"><button class="btn" onclick="subSave()">Tambah</button></div></div></div>'+
+    '<div class="card">'+(S.subjek.length?'<div class="tw"><table><tr><th>Kod</th><th>Nama</th><th></th></tr>'+S.subjek.map(function(s){return '<tr><td>'+esc(s.kod)+'</td><td>'+esc(s.nama)+'</td><td><button class="btn red sm" onclick="subDel(\''+esc(s.kod)+'\')">Padam</button></td></tr>'}).join('')+'</table></div>':'<div class="empty">Tiada subjek.</div>')+'</div>';
+  $('main').innerHTML=h;
+}
+async function subSave(){try{await api('saveSubjek',{kod:$('sKod').value,nama:$('sNama').value});go('subjek')}catch(e){toast(e.message,true)}}
+async function subDel(k){if(!confirm('Padam subjek '+k+'?'))return;try{await api('deleteSubjek',{kod:k});go('subjek')}catch(e){toast(e.message,true)}}
+
+start();
+</script>
+</body>
+</html>
